@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-inter: 'Inter', system-ui, sans-serif;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply font-sans text-base leading-relaxed;
+  }
+
+  /* Focus ring — accessible, consistent */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-500;
+  }
+
+  /* Scrollbar — subtle */
+  ::-webkit-scrollbar        { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track  { @apply bg-surface-100; }
+  ::-webkit-scrollbar-thumb  { @apply bg-surface-200 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-surface-200; }
+}
+
+@layer components {
+  /* Shimmer skeleton */
+  .skeleton {
+    @apply bg-surface-200 rounded animate-shimmer;
+    background-size: 200% 100%;
+    background-image: linear-gradient(
+      90deg,
+      theme('colors.surface.200') 0%,
+      theme('colors.surface.100') 50%,
+      theme('colors.surface.200') 100%
+    );
+  }
+
+  /* Score ring colours */
+  .score-excellent { @apply text-success-500; }
+  .score-good      { @apply text-brand-500; }
+  .score-fair      { @apply text-warning-500; }
+  .score-poor      { @apply text-danger-500; }
+}

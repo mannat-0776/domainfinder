@@ -1,0 +1,137 @@
+# =============================================================
+# Domain Finder — GitLab CI/CD
+# =============================================================
+# Stages run in order. Every stage must pass before the next.
+# The app remains deployable after every phase.
+# =============================================================
+
+image: node:20-alpine
+
+stages:
+  - install
+  - quality
+  - test
+  - build
+  - security
+  - deploy
+
+variables:
+  NODE_ENV: test
+  NAME_GENERATOR_PROVIDER: mock
+  DOMAIN_PROVIDER: mock
+  NEXT_PUBLIC_APP_URL: http://localhost:3000
+  npm_config_cache: "$CI_PROJECT_DIR/.npm"
+  SAST_EXCLUDED_PATHS: "node_modules, .next, coverage"
+  SECRET_DETECTION_ENABLED: "true"
+
+# ── Shared cache ──────────────────────────────────────────────
+.node_cache: &node_cache
+  cache:
+    key:
+      files:
+        - package.json
+    paths:
+      - .npm/
+      - node_modules/
+    policy: pull
+
+# ── Install ───────────────────────────────────────────────────
+install:
+  stage: install
+  cache:
+    key:
+      files:
+        - package.json
+    paths:
+      - .npm/
+      - node_modules/
+    policy: pull-push
+  script:
+    - npm install --prefer-offline
+  artifacts:
+    paths:
+      - node_modules/
+    expire_in: 1 hour
+
+# ── Quality ───────────────────────────────────────────────────
+lint:
+  stage: quality
+  <<: *node_cache
+  needs: [install]
+  script:
+    - npm run lint
+
+typecheck:
+  stage: quality
+  <<: *node_cache
+  needs: [install]
+  script:
+    - npm run typecheck
+
+# ── Test ──────────────────────────────────────────────────────
+unit-test:
+  stage: test
+  <<: *node_cache
+  needs: [install]
+  script:
+    - npm run test:coverage
+  artifacts:
+    when: always
+    paths:
+      - coverage/
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+    expire_in: 7 days
+  coverage: '/^All files\s*\|\s*([\d.]+)/'
+
+# ── Build ─────────────────────────────────────────────────────
+build:
+  stage: build
+  <<: *node_cache
+  needs: [lint, typecheck, unit-test]
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - .next/
+    expire_in: 1 day
+
+# ── Security ──────────────────────────────────────────────────
+sast:
+  stage: security
+  needs: []
+
+secret_detection:
+  stage: security
+  needs: []
+
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+
+# ── Deploy (Vercel — uncomment + set CI/CD variables to enable) ──
+# deploy-preview:
+#   stage: deploy
+#   needs: [build]
+#   image: node:20-alpine
+#   script:
+#     - npx vercel --token $VERCEL_TOKEN --yes
+#   environment:
+#     name: preview/$CI_COMMIT_REF_SLUG
+#     url: https://$CI_COMMIT_REF_SLUG.vercel.app
+#   rules:
+#     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+#
+# deploy-production:
+#   stage: deploy
+#   needs: [build]
+#   image: node:20-alpine
+#   script:
+#     - npx vercel --token $VERCEL_TOKEN --prod --yes
+#   environment:
+#     name: production
+#     url: https://domainfinder.app
+#   rules:
+#     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
