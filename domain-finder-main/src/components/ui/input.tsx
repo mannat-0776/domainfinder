@@ -1,81 +1,91 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  error?: boolean;
+  errorMessage?: string;
   label?: string;
-  error?: string;
-  hint?: string;
-  leftElement?: React.ReactNode;
-  rightElement?: React.ReactNode;
+  helperText?: string;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 }
 
-// Wrapper so we can call useId at the top level (Rules of Hooks)
-function InputInner(
-  { className, label, error, hint, leftElement, rightElement, id, ...props }: InputProps,
-  ref: React.ForwardedRef<HTMLInputElement>
-) {
-  const generatedId = React.useId();
-  const inputId = id ?? generatedId;
-  const errorId = `${inputId}-error`;
-  const hintId  = `${inputId}-hint`;
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  (
+    {
+      className,
+      type = 'text',
+      error = false,
+      errorMessage,
+      label,
+      helperText,
+      leftIcon,
+      rightIcon,
+      disabled,
+      ...props
+    },
+    ref
+  ) => {
+    const id = props.id || `input-${Math.random().toString(36).substr(2, 9)}`;
 
-  return (
-    <div className="flex flex-col gap-1.5">
-      {label && (
-        <label
-          htmlFor={inputId}
-          className="text-sm font-medium text-surface-700"
-        >
-          {label}
-        </label>
-      )}
-      <div className="relative flex items-center">
-        {leftElement && (
-          <div className="absolute left-3 text-surface-400 pointer-events-none">
-            {leftElement}
-          </div>
+    return (
+      <div className="w-full">
+        {label && (
+          <label
+            htmlFor={id}
+            className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2"
+          >
+            {label}
+          </label>
         )}
-        <input
-          ref={ref}
-          id={inputId}
-          aria-describedby={
-            [error && errorId, hint && hintId].filter(Boolean).join(' ') || undefined
-          }
-          aria-invalid={!!error}
-          className={cn(
-            'w-full rounded-lg border bg-white px-3 py-2 text-sm',
-            'placeholder:text-surface-400 text-surface-900',
-            'transition-colors duration-150',
-            'focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500',
-            error
-              ? 'border-danger-500 focus:ring-danger-500'
-              : 'border-surface-200 hover:border-surface-300',
-            leftElement  && 'pl-9',
-            rightElement && 'pr-9',
-            className
+        <div className="relative">
+          {leftIcon && (
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400 dark:text-surface-500 pointer-events-none">
+              {leftIcon}
+            </div>
           )}
-          {...props}
-        />
-        {rightElement && (
-          <div className="absolute right-3 text-surface-400">
-            {rightElement}
-          </div>
+          <input
+            ref={ref}
+            type={type}
+            id={id}
+            disabled={disabled}
+            className={cn(
+              'w-full h-10 rounded-lg border text-sm',
+              'bg-white dark:bg-surface-800',
+              'text-surface-900 dark:text-surface-50',
+              'placeholder-surface-500 dark:placeholder-surface-400',
+              'transition-colors duration-200',
+              'focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:ring-opacity-10',
+              'dark:focus:ring-brand-400 dark:focus:ring-opacity-20',
+              error
+                ? 'border-danger-500 dark:border-danger-500'
+                : 'border-surface-200 dark:border-surface-700 hover:border-surface-300 dark:hover:border-surface-600',
+              disabled && 'bg-surface-50 dark:bg-surface-900 cursor-not-allowed opacity-60',
+              leftIcon && 'pl-10',
+              rightIcon && 'pr-10',
+              className
+            )}
+            {...props}
+          />
+          {rightIcon && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 dark:text-surface-500 pointer-events-none">
+              {rightIcon}
+            </div>
+          )}
+        </div>
+        {error && errorMessage && (
+          <p className="mt-1.5 text-sm text-danger-600 dark:text-danger-400 font-medium">
+            {errorMessage}
+          </p>
+        )}
+        {!error && helperText && (
+          <p className="mt-1.5 text-sm text-surface-500 dark:text-surface-400">
+            {helperText}
+          </p>
         )}
       </div>
-      {error && (
-        <p id={errorId} role="alert" className="text-xs text-danger-500">
-          {error}
-        </p>
-      )}
-      {hint && !error && (
-        <p id={hintId} className="text-xs text-surface-500">
-          {hint}
-        </p>
-      )}
-    </div>
-  );
-}
+    );
+  }
+);
 
-export const Input = React.forwardRef<HTMLInputElement, InputProps>(InputInner);
 Input.displayName = 'Input';

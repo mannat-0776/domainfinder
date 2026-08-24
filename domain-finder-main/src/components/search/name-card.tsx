@@ -11,12 +11,12 @@ import type { NameCandidate } from '@/types';
 import { Heart, ChevronDown, ChevronUp } from 'lucide-react';
 
 const STYLE_LABELS: Record<string, string> = {
-  invented:    'Invented',
+  invented: 'Invented',
   descriptive: 'Descriptive',
-  metaphor:    'Metaphor',
-  compound:    'Compound',
-  acronym:     'Acronym',
-  founder:     'Founder',
+  metaphor: 'Metaphor',
+  compound: 'Compound',
+  acronym: 'Acronym',
+  founder: 'Founder',
 };
 
 interface NameCardProps {
@@ -40,34 +40,37 @@ export function NameCard({
   return (
     <article
       className={cn(
-        'rounded-2xl border bg-white transition-shadow duration-200',
+        'rounded-xl border transition-all duration-300',
         isRecommended
-          ? 'border-brand-400 shadow-md shadow-brand-100 ring-1 ring-brand-400'
-          : 'border-surface-200 hover:shadow-sm',
+          ? 'border-brand-400 bg-gradient-to-br from-brand-50 to-white dark:from-brand-950 dark:to-surface-900 shadow-lg dark:shadow-xl ring-2 ring-brand-500'
+          : 'border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-900 hover:border-surface-300 dark:hover:border-surface-600 hover:shadow-base',
         'animate-slide-up',
         className
       )}
       aria-label={`Name candidate: ${candidate.name}`}
     >
       {isRecommended && (
-        <div className="flex items-center gap-1.5 px-5 py-2 bg-brand-500 rounded-t-2xl">
-          <span className="text-xs font-semibold text-white tracking-wide uppercase">
-            ⭐ Recommended
+        <div className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-brand-500 to-brand-600 dark:from-brand-600 dark:to-brand-700 rounded-t-xl">
+          <span className="text-lg">⭐</span>
+          <span className="text-xs font-bold text-white tracking-wide uppercase">
+            Recommended Choice
           </span>
         </div>
       )}
 
-      <div className="p-5">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-2xl font-bold text-surface-900 tracking-tight">
+      <div className="p-6 sm:p-8">
+        {/* Header section */}
+        <div className="flex items-start justify-between gap-4 mb-6">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-3 flex-wrap mb-2">
+              <h3 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-surface-50 tracking-tight break-all">
                 {candidate.name}
               </h3>
-              <Badge variant="brand">{STYLE_LABELS[candidate.style] ?? candidate.style}</Badge>
+              <Badge variant="brand" size="sm">
+                {STYLE_LABELS[candidate.style] ?? candidate.style}
+              </Badge>
             </div>
-            <p className="mt-1 text-sm text-surface-600 leading-snug">
+            <p className="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
               {candidate.rationale}
             </p>
           </div>
@@ -79,14 +82,19 @@ export function NameCard({
           )}
         </div>
 
-        {/* Domain availability */}
-        <div className="mt-4">
-          <h4 className="text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2">
+        {/* Divider */}
+        <div className="divider my-6" />
+
+        {/* Domain availability section */}
+        <div className="mb-6">
+          <h4 className="text-label mb-4">
             Domain Availability
           </h4>
-          <div>
+          <div className="space-y-2">
             {candidate.domains.length === 0 ? (
-              <p className="text-sm text-surface-400">Checking domains…</p>
+              <p className="text-sm text-surface-500 dark:text-surface-400 py-2">
+                Checking domains…
+              </p>
             ) : (
               candidate.domains.map((d) => (
                 <DomainRow key={d.domain} domain={d} />
@@ -97,28 +105,36 @@ export function NameCard({
 
         {/* Score breakdown (expandable) */}
         {score && (
-          <div className="mt-4">
+          <div>
             <button
               type="button"
               onClick={() => setExpanded((v) => !v)}
-              className="flex items-center gap-1 text-xs font-medium text-surface-500 hover:text-surface-700 transition-colors"
+              className="flex items-center gap-2 text-sm font-semibold text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-200 transition-colors py-2"
               aria-expanded={expanded}
+              aria-controls={`breakdown-${candidate.id}`}
             >
-              {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              {expanded ? 'Hide' : 'Show'} score breakdown
+              {expanded ? (
+                <ChevronUp size={16} />
+              ) : (
+                <ChevronDown size={16} />
+              )}
+              {expanded ? 'Hide' : 'Show'} detailed breakdown
             </button>
 
             {expanded && (
-              <div className="mt-3 animate-fade-in">
+              <div
+                id={`breakdown-${candidate.id}`}
+                className="mt-4 pt-4 border-t border-surface-200 dark:border-surface-700 animate-fade-in"
+              >
                 <ScoreBreakdown score={score} />
               </div>
             )}
           </div>
         )}
 
-        {/* Actions */}
+        {/* Actions footer */}
         {onFavorite && (
-          <div className="mt-4 flex justify-end">
+          <div className="mt-6 pt-6 border-t border-surface-200 dark:border-surface-700 flex justify-end">
             <Button
               variant="ghost"
               size="sm"
@@ -127,8 +143,13 @@ export function NameCard({
               aria-pressed={isFavorite}
               leftIcon={
                 <Heart
-                  size={15}
-                  className={isFavorite ? 'fill-danger-500 text-danger-500' : ''}
+                  size={16}
+                  className={cn(
+                    'transition-all',
+                    isFavorite
+                      ? 'fill-danger-500 text-danger-500'
+                      : 'text-surface-400 hover:text-danger-500'
+                  )}
                 />
               }
             >

@@ -12,10 +12,17 @@ interface ScoreRingProps {
   animate?: boolean;
 }
 
+const getStrokeColor = (score: number): string => {
+  if (score >= 80) return '#16a34a';      // success-600
+  if (score >= 60) return '#6366f1';      // brand-500
+  if (score >= 40) return '#d97706';      // warning-600
+  return '#dc2626';                       // danger-600
+};
+
 export function ScoreRing({
   score,
   size = 80,
-  strokeWidth = 7,
+  strokeWidth = 6,
   label,
   className,
   animate = true,
@@ -25,11 +32,7 @@ export function ScoreRing({
   const offset = circumference - (score / 100) * circumference;
 
   const colorClass = scoreToColorClass(score);
-  const strokeColor =
-    score >= 80 ? '#22c55e'
-    : score >= 60 ? '#6366f1'
-    : score >= 40 ? '#f59e0b'
-    : '#ef4444';
+  const strokeColor = getStrokeColor(score);
 
   return (
     <div
@@ -45,7 +48,7 @@ export function ScoreRing({
         className="-rotate-90"
         aria-hidden="true"
       >
-        {/* Track */}
+        {/* Track background */}
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -53,9 +56,9 @@ export function ScoreRing({
           fill="none"
           stroke="currentColor"
           strokeWidth={strokeWidth}
-          className="text-surface-200"
+          className="text-surface-200 dark:text-surface-700"
         />
-        {/* Progress */}
+        {/* Progress ring */}
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -71,15 +74,21 @@ export function ScoreRing({
           }}
         />
       </svg>
-      {/* Centre label */}
+      {/* Center label */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className={cn('font-bold tabular-nums leading-none', colorClass,
-          size >= 80 ? 'text-xl' : 'text-base'
-        )}>
+        <span
+          className={cn(
+            'font-bold tabular-nums leading-none',
+            colorClass,
+            size >= 80 ? 'text-xl' : 'text-base'
+          )}
+        >
           {Math.round(score)}
         </span>
         {label && (
-          <span className="text-2xs text-surface-500 mt-0.5 leading-none">{label}</span>
+          <span className="text-2xs text-surface-500 dark:text-surface-400 mt-0.5 leading-none">
+            {label}
+          </span>
         )}
       </div>
     </div>
